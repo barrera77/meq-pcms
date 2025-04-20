@@ -17,10 +17,15 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { email, password } = registerDto;
+    const { email, password, role, city } = registerDto;
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const createdUser = new this.userModel({ email, password: hashedPassword });
+    const createdUser = new this.userModel({
+      email,
+      password: hashedPassword,
+      role,
+      city,
+    });
 
     const savedUser = await createdUser.save();
 
@@ -29,6 +34,8 @@ export class AuthService {
       user: {
         id: savedUser._id,
         email: savedUser.email,
+        role: savedUser.role,
+        city: savedUser.city,
       },
     };
   }
@@ -41,7 +48,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid Credentials');
     }
 
-    const tokens = this.generateTokens(user._id.toString(), user.email);
+    const tokens = this.generateTokens(
+      user._id.toString(),
+      user.email,
+      user.role,
+      user.city,
+    );
 
     return {
       message: 'Login Successfull',
@@ -62,8 +74,8 @@ export class AuthService {
   }
 
   //Generate tokens
-  generateTokens(userId: string, email: string) {
-    const payload = { sub: userId, email };
+  generateTokens(userId: string, email: string, role: string, city: string) {
+    const payload = { sub: userId, email, role, city };
 
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, {

@@ -12,11 +12,15 @@ import { AuthService } from './auth.service';
 import { LoginDto } from 'src/dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
+import { RolesGuard } from './roles.guard';
+import { Roles } from './roles.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
   @Post('register')
   register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
@@ -62,6 +66,8 @@ export class AuthController {
     const newTokens = this.authService.generateTokens(
       userData.sub,
       userData.email,
+      userData.role,
+      userData.city,
     );
     res.cookie('accessToken', newTokens.accessToken, {
       httpOnly: true,

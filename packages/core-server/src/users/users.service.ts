@@ -15,6 +15,10 @@ export class UsersService {
     return this.userModel.findById(userId).exec();
   }
 
+  async findAll(): Promise<User[]> {
+    return this.userModel.find().exec();
+  }
+
   async create(email: string, hashedPassword: string): Promise<User> {
     const newUser = new this.userModel({ email, password: hashedPassword });
     return newUser.save();
