@@ -6,24 +6,24 @@ export type UserDocument = User & Document;
 @Schema({ timestamps: true })
 export class User {
   _id: Types.ObjectId;
+
   @Prop({ required: true, unique: true })
   email: string;
 
   @Prop({ required: true })
   password: string;
 
-  @Prop({
-    required: true,
-    enum: ['admin', 'supervisor', 'tech'],
-    default: 'tech',
-  })
+  @Prop({ type: Types.ObjectId, ref: 'Role', required: true })
   role: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'City', required: true })
+  city: Types.ObjectId;
 
   @Prop({
     required: true,
-    enum: ['edmonton', 'calgary', 'saskatoon', 'regina', 'prince-george'],
+    default: true,
   })
-  city: string;
+  active: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
