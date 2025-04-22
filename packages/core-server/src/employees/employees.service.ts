@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Employee, EmployeeDocument } from 'src/schemas/employee.schema';
 
 @Injectable()
-export class EmployeeService {
+export class EmployeesService {
   constructor(
     @InjectModel(Employee.name) private employeeModel: Model<EmployeeDocument>,
   ) {}
@@ -13,25 +13,42 @@ export class EmployeeService {
     return this.employeeModel.findById(employeeId).exec();
   }
 
-  async findByName(name: string): Promise<Employee | null> {
-    return this.employeeModel.findOne({ name }).exec();
+  async findByNameOrLastName(term: string): Promise<EmployeeDocument[]> {
+    return this.employeeModel
+      .find({
+        $or: [
+          { name: { $regex: term, $options: 'i' } },
+          { lastName: { $regex: term, $options: 'i' } },
+        ],
+      })
+      .exec();
   }
 
   async findAll(): Promise<Employee[]> {
     return this.employeeModel.find().exec();
   }
 
-  async findByUserId(userId: string): Promise<Employee | null> {
-    return this.employeeModel.findOne({ user: userId }).exec();
+  async findByUserRole(role: string): Promise<EmployeeDocument[]> {
+    return this.employeeModel
+      .find()
+      .populate({ path: 'user', match: { role } })
+      .exec()
+      .then((employees) => employees.filter((e) => e.user));
   }
 
-  async create(name: string, department: Types.ObjectId): Promise<Employee> {
-    const existing = await this.findByName(name);
+  async create(
+    name: string,
+    lastName: string,
+    department: Types.ObjectId,
+  ): Promise<Employee> {
+    const existing = await this.findByNameOrLastName(name);
 
     if (existing) {
-      throw new Error(`Employee with name "${name}" already exists`);
+      throw new Error(
+        `Employee with name "${name} ${lastName}" already exists`,
+      );
     }
-    const newEmployee = new this.employeeModel({ name });
+    const newEmployee = new this.employeeModel({ name, lastName, department });
     return newEmployee.save();
   }
 }

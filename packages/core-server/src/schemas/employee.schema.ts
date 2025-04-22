@@ -10,6 +10,9 @@ export class Employee {
   @Prop({ required: true })
   name: string;
 
+  @Prop({ required: true })
+  lastName: string;
+
   @Prop({ type: Types.ObjectId, ref: 'Department', required: true })
   department: Types.ObjectId;
 
